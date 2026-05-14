@@ -1,0 +1,12 @@
+/**
+ * 全局 CSS 变量
+ * 主色调: #8d26ed
+ * 主色调深色: #7300ffa2
+ * 蓝色调: #0084ff
+ */
+
+:root {
+  --color-primary: #8d26ed;
+  --color-primary-dark: #7300ffa2;
+  --color-blue: #0084ff;
+}

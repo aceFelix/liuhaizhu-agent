@@ -1,0 +1,29 @@
+name: liuhaizhu
+version: '1.0.0'
+services:
+  liuhaizhu-chat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: liuhaizhu-frontend:latest
+    container_name: liuhaizhu-frontend
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      - BACKEND_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    volumes:
+      # 挂载nginx配置用于热更新
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # SSL 证书挂载（将证书文件放在项目 ssl/ 目录下）
+      - ./ssl/your-domain.com.pem:/etc/ssl/your-domain.com.pem:ro
+      - ./ssl/your-domain.com.key:/etc/ssl/your-domain.com.key:ro
+    networks:
+      - liuhaizhu-network
+
+networks:
+  liuhaizhu-network:
+    driver: bridge

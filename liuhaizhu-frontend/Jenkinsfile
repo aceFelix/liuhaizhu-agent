@@ -1,0 +1,105 @@
+pipeline {
+    agent any
+
+    environment {
+        // 项目配置
+        PROJECT_NAME = 'liuhaizhu-chat'
+        DEPLOY_DIR = '/path/to/deploy/liuhaizhu-vue3'
+        IMAGE_NAME = 'liuhaizhu-chat'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        
+        // 服务器配置（在Jenkins凭据中配置）
+        SERVER_HOST = credentials('deploy-server-host')
+        SERVER_USER = credentials('deploy-server-user')
+    }
+
+    stages {
+        stage('拉取代码') {
+            steps {
+                checkout scm
+                echo "代码拉取完成，当前构建号: ${BUILD_NUMBER}"
+            }
+        }
+
+        stage('构建Docker镜像') {
+            steps {
+                script {
+                    echo "开始构建Docker镜像..."
+                    sh """
+                        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                    """
+                }
+            }
+        }
+
+        stage('推送镜像') {
+            steps {
+                script {
+                    // 如果使用私有仓库，取消注释以下代码
+                    // withCredentials([usernamePassword(credentialsId: 'docker-registry', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    //     sh """
+                    //         docker login -u ${DOCKER_USER} -p ${DOCKER_PASS} your-registry.com
+                    //         docker tag ${IMAGE_NAME}:${IMAGE_TAG} your-registry.com/${IMAGE_NAME}:${IMAGE_TAG}
+                    //         docker push your-registry.com/${IMAGE_NAME}:${IMAGE_TAG}
+                    //     """
+                    // }
+                    echo "镜像构建完成: ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('部署到服务器') {
+            steps {
+                script {
+                    sshagent(credentials: ['deploy-server-ssh']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=yes ${SERVER_USER}@${SERVER_HOST} << 'EOF'
+                                cd ${DEPLOY_DIR}
+                                
+                                # 停止并删除旧容器
+                                docker-compose down || true
+                                
+                                # 删除旧镜像（保留最新）
+                                docker image prune -f
+                                
+                                # 启动新容器
+                                docker-compose up -d --build
+                                
+                                # 检查容器状态
+                                docker-compose ps
+                                
+                                echo "部署完成!"
+EOF
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('健康检查') {
+            steps {
+                script {
+                    sleep(time: 10, unit: 'SECONDS')
+                    sh """
+                        curl -f http://${SERVER_HOST}/health || exit 1
+                    """
+                    echo "健康检查通过!"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ 部署成功! 访问地址: https://${SERVER_HOST}"
+        }
+        failure {
+            echo "❌ 部署失败，请检查日志"
+        }
+        always {
+            // 清理本地构建的镜像
+            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+        }
+    }
+}

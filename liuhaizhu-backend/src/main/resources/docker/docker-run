@@ -1,0 +1,43 @@
+# 1.运行docker命令启动应用
+# 以下配置以你的实际为准
+docker run -d \
+  -p 8080:8080 \
+  -m 768m \
+  --memory-swap 768m \
+  -e spring.datasource.host=localhost \
+  -e spring.datasource.port=3306 \
+  -e spring.datasource.database=liuhaizhu \
+  -e spring.datasource.username=root \
+  -e spring.datasource.password=your_password \
+  -e spring.data.redis.host=localhost \
+  -e spring.data.redis.port=6379 \
+  -e spring.data.redis.password=your_redis_password \
+  -e DASHSCOPE_API_KEY=your_api_key \
+  -v /path/to/app/logs:/app/logs \
+  --name liuhaizhu-backend \
+  --restart unless-stopped \
+  liuhaizhu-backend:latest
+  # 查看容器内存使用
+  docker stats liuhaizhu-backend
+  # 进入容器查看JVM内存
+  docker exec -it liuhaizhu-backend sh
+  java -XX:+PrintFlagsFinal -version | grep -i heap
+
+  # 2.使用docker-compose启动服务
+  docker-compose up -d
+  # 停止服务
+  docker-compose down
+  # 重启应用
+  docker-compose restart liuhaizhu-backend
+  # 查看容器日志
+  docker-compose logs -f
+  # 只查看应用日志
+  docker-compose logs -f liuhaizhu-backend
+  # 查看内存使用
+  docker stats
+  # 进入容器
+  docker-compose exec liuhaizhu-backend sh
+  # 更新应用（重新打包jar后）
+  docker-compose down
+  docker build -t liuhaizhu-backend:latest .
+  docker-compose up -d

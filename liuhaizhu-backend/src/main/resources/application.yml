@@ -1,0 +1,207 @@
+spring:
+  application:
+    name: liuhaizhu_ai-chat-backend
+  profiles:
+    active: dev
+  mvc:
+    async:
+      request-timeout: 60000
+
+  # 数据源
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    hikari:
+      pool-name: DataSourceHikariCP
+      connection-timeout: 30000
+      minimum-idle: 10
+      maximum-pool-size: 50
+      auto-commit: true
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+
+  # 邮件
+  mail:
+    host: ${spring.mail.host}
+    port: ${spring.mail.port}
+    username: ${spring.mail.username}
+    password: ${spring.mail.password}
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          # 创建SSL连接
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+          ssl:
+            enable: true
+
+  ai:
+    # 向量数据库
+    vectorstore:
+      redis:
+        # 是否初始化数据库结构
+        initialize-schema: true
+        # 用于存储向量的索引名称
+        index-name: 'ace-vectorstore'
+        # 用于存储向量的key前缀
+        prefix: 'embedding:'
+
+    # 模型服务
+    dashscope:
+      # 线上
+      # api-key: ${spring.ai.dashscope.api-key}
+      # 本地
+      # api-key: ${DASHSCOPE_API_KEY}
+      embedding:
+        enabled: true
+        options:
+          model: text-embedding-v4
+
+    # mcp
+    mcp:
+      server:
+        name: mcp-server
+        version: 1.0.0
+        sse-endpoint: /sse
+        type: async
+      client:
+        enabled: true
+        name: mcp-client
+        type: async
+        #sse:
+          #connections:
+            #server1:
+              #url: https://mcp.amap.com
+              #sse-endpoint: ${spring.ai.mcp.client.sse.connections.server1.sse-endpoint}
+        stdio:
+          # use servers-configuration to load mcp-server-template.json
+          servers-configuration: classpath:mcp-server2.json
+          # or use this to connect to mcp-server
+#          connections:
+#            filesystem:
+#              command: ${spring.ai.mcp.client.stdio.connections.filesystem.command}
+#              args: ${spring.ai.mcp.client.stdio.connections.filesystem.args}
+#            amap-maps:
+#              command: ${spring.ai.mcp.client.stdio.connections.amap-maps.command}
+#              args: ${spring.ai.mcp.client.stdio.connections.amap-maps.args}
+#              env:
+#                AMAP_MAPS_API_KEY: ${AMAP_MAPS_API_KEY}
+
+  # redis-stack
+  data:
+    redis:
+      host: ${spring.data.redis.host}
+      port: ${spring.data.redis.port}
+      password: ${spring.data.redis.password}
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 20
+          min-idle: 5
+          max-wait: 3000ms
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# 前端站点域名
+website:
+  domain: ${website.domain}
+
+# SearXNG
+websearch:
+  searxng:
+    url: ${websearch.searxng.url}
+    count: 10
+
+# mybatis-plus
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_empty
+      table-prefix: ""
+  mapper-locations: classpath*:mapper/*.xml
+
+# 会话管理配置
+conversation:
+  # 每个用户最大会话数量，超过后自动删除最早的会话
+  max-count: 50
+
+# JWT配置
+jwt:
+  # 密钥
+  secret: ${jwt.secret}
+  # 过期时间（毫秒）
+  expiration: 86400000
+  # 刷新令牌过期时间（毫秒）
+  refresh-expiration: 604800000
+
+# x-file-storage集成阿里云OSS
+dromara:
+  #文件存储配置
+  x-file-storage:
+    #默认使用的存储平台
+    default-platform: aliyun-oss-1
+    thumbnail-suffix: ".min.jpg"
+    aliyun-oss:
+        # 存储平台标识
+      - platform: aliyun-oss-1
+        # 启用存储
+        enable-storage: true
+        access-key: ${dromara.x-file-storage.aliyun-oss[0].access-key}
+        secret-key: ${dromara.x-file-storage.aliyun-oss[0].secret-key}
+        end-point: ${dromara.x-file-storage.aliyun-oss[0].end-point}
+        bucket-name: ${dromara.x-file-storage.aliyun-oss[0].bucket-name}
+        # 访问域名
+        domain: ${dromara.x-file-storage.aliyun-oss[0].domain}
+        # 基础路径
+        base-path: ${dromara.x-file-storage.aliyun-oss[0].base-path}
+
+# Spring Boot Actuator 健康检查配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.itfelix.liuhaizhuaichat: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+  file:
+    name: logs/liuhaizhu-ai-chat.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 1GB
+      clean-history-on-start: true
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

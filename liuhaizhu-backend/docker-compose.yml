@@ -1,0 +1,51 @@
+name: liuhaizhu
+version: '1.0.0'
+# 以下配置以你的实际为准
+services:
+  liuhaizhu-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: liuhaizhu-backend:latest
+    container_name: liuhaizhu-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # 数据库配置（远程服务器）
+      - spring.datasource.host=remote_server_ip
+      - spring.datasource.port=3306
+      - spring.datasource.database=liuhaizhu
+      - spring.datasource.username=root
+      - spring.datasource.password=your_password
+      # 数据库连接池优化（小内存）
+      - spring.datasource.hikari.minimum-idle=3
+      - spring.datasource.hikari.maximum-pool-size=6
+      # Redis配置（远程服务器）
+      - spring.data.redis.host=remote_server_ip
+      - spring.data.redis.port=6379
+      - spring.data.redis.password=your_redis_password
+      # API密钥
+      - DASHSCOPE_API_KEY=your_dashscope_api_key
+      - AMAP_MAPS_API_KEY=your_amap_api_key
+      # 邮件配置
+      - spring.mail.host=smtp.example.com
+      - spring.mail.port=465
+      - spring.mail.username=your_email@example.com
+      - spring.mail.password=your_email_password
+      # 网站域名
+      - website.domain=http://your-domain.com
+      # 搜索引擎
+      - websearch.searxng.url=http://remote_server_ip:8080
+      # MCP配置（如果不需要可以删除）
+      - spring.ai.mcp.client.stdio.connections.filesystem.command=npx
+      - spring.ai.mcp.client.stdio.connections.filesystem.args=-y @modelcontextprotocol/server-filesystem /tmp
+      - spring.ai.mcp.client.stdio.connections.amap-maps.command=node
+      - spring.ai.mcp.client.stdio.connections.amap-maps.args=/path/to/amap-server.js
+    volumes:
+      - /path/to/app/logs:/app/logs
+    # 内存限制（2GB服务器）
+    mem_limit: 768m
+    mem_reservation: 512m
+    memswap_limit: 768m
+    # 重启策略：除非手动停止，否则总是重启
+    restart: unless-stopped

@@ -1,0 +1,67 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### 开发环境配置文件 ###
+src/main/resources/application-prod.yml
+src/main/resources/application-dev.yml
+src/main/resources/application-test.yml
+
+### 生产环境配置文件 ###
+src/main/resources/application-local.yml
+
+### MCPServer配置文件 ###
+src/main/resources/mcp-server.json
+src/main/resources/mcp-server2.json
+
+### 系统环境变量配置文件 ###
+src/main/resources/.env
+
+### 项目文档 ###
+docs
+
+### SSL 证书和密钥 ###
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+### 日志文件 ###
+logs/
+*.log
+
+### 敏感配置文件 ###
+.env
+.env.local
+.env.*.local

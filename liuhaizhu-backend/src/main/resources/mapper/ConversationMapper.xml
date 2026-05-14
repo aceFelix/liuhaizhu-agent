@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itfelix.liuhaizhuaichat.mapper.ConversationMapper">
+
+    <!-- 结果映射：会话VO（包含消息统计） -->
+    <resultMap id="ConversationVOResultMap" type="com.itfelix.liuhaizhuaichat.pojo.vo.ConversationVO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="title" column="title"/>
+        <result property="type" column="type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="messageCount" column="message_count"/>
+        <result property="lastMessage" column="last_message"/>
+    </resultMap>
+
+    <!-- 优化后的会话列表查询：使用子查询一次性获取消息数量和最后一条消息 -->
+    <select id="selectConversationVOList" resultMap="ConversationVOResultMap">
+        SELECT 
+            c.id,
+            c.user_id,
+            c.title,
+            c.type,
+            c.create_time,
+            c.update_time,
+            (SELECT COUNT(*) FROM chat_message m WHERE m.conversation_id = c.id) AS message_count,
+            (SELECT CASE 
+                WHEN LENGTH(m2.content) > 50 THEN CONCAT(SUBSTRING(m2.content, 1, 50), '...')
+                ELSE m2.content 
+            END
+            FROM chat_message m2 
+            WHERE m2.conversation_id = c.id 
+            ORDER BY m2.create_time DESC 
+            LIMIT 1) AS last_message
+        FROM conversation c
+        WHERE c.user_id = #{userId}
+        ORDER BY c.update_time DESC
+    </select>
+
+</mapper>

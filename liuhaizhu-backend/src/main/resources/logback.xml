@@ -1,0 +1,17 @@
+<configuration>
+    <!-- 声明自定义颜色转换器 -->
+    <conversionRule conversionWord="color" converterClass="com.itfelix.liuhaizhuaichat.logback.MyColorConverter" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 在模式中使用 %color() 包裹你想着色的部分 -->
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %color(%-5level) %color(%logger){cyan} : %color(%msg) %n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
