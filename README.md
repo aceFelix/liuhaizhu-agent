@@ -1,3 +1,5 @@
+<div align="center">
+
 ```
   _    _  _ _______                           _   _   ___ 
  | |  | || |_  / _ \___ _ _ ___ ___ _ _  __ _| | /_\ |_ _|
@@ -5,16 +7,17 @@
  |____|_||_/___|_| \___|_| /__/\___/_||_\__,_|_/_/ \_\___|
                                                           
 ```
-<p align="center">刘海柱Agent——Java大模型应用开发项目学习使用</p>
 
-<p align="center">
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.8-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-![Spring AI](https://img.shields.io/badge/Spring_AI-1.0.3-6DB33F?style=flat-square&logo=java&logoColor=white)
-![Vue 3](https://img.shields.io/badge/Vue_3-3.x-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)
-![Qwen3-Max](https://img.shields.io/badge/Qwen3--Max-DashScope-FF6A00?style=flat-square&logo=alibabacloud&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-Stack-DC382D?style=flat-square&logo=redis&logoColor=white)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
-</p>
+**刘海柱Agent——Java大模型应用开发项目学习使用**
+
+<img src="https://img.shields.io/badge/Spring_Boot-3.5.8-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot" />
+<img src="https://img.shields.io/badge/Spring_AI-1.0.3-6DB33F?style=flat-square&logo=java&logoColor=white" alt="Spring AI" />
+<img src="https://img.shields.io/badge/Vue_3-3.x-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue 3" />
+<img src="https://img.shields.io/badge/Qwen3--Max-DashScope-FF6A00?style=flat-square&logo=alibabacloud&logoColor=white" alt="Qwen3-Max" />
+<img src="https://img.shields.io/badge/Redis-Stack-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
+<img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License: MIT" />
+
+</div>
 
 # LHZ 个人智能助手
 
