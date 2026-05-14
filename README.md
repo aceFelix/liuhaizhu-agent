@@ -10,12 +10,11 @@
 
 **刘海柱Agent——Java大模型应用开发项目学习使用**
 
-<img src="https://img.shields.io/badge/Spring_Boot-3.5.8-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot" />
-<img src="https://img.shields.io/badge/Spring_AI-1.0.3-6DB33F?style=flat-square&logo=java&logoColor=white" alt="Spring AI" />
-<img src="https://img.shields.io/badge/Vue_3-3.x-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue 3" />
-<img src="https://img.shields.io/badge/Qwen3--Max-DashScope-FF6A00?style=flat-square&logo=alibabacloud&logoColor=white" alt="Qwen3-Max" />
-<img src="https://img.shields.io/badge/Redis-Stack-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
-<img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License: MIT" />
+<a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring_Boot-3.5.8-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot" /></a>
+<a href="https://spring.io/projects/spring-ai"><img src="https://img.shields.io/badge/Spring_AI-1.0.3-6DB33F?style=flat-square&logo=java&logoColor=white" alt="Spring AI" /></a>
+<a href="https://vuejs.org/"><img src="https://img.shields.io/badge/Vue_3-3.x-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" alt="Vue 3" /></a>
+<a href="https://bailian.console.aliyun.com/cn-beijing/?tab=model#/model-market"><img src="https://img.shields.io/badge/Qwen3--Max-DashScope-FF6A00?style=flat-square&logo=alibabacloud&logoColor=white" alt="Qwen3-Max" /></a>
+<a href="https://redis.io/blog/introducing-redis-stack/"><img src="https://img.shields.io/badge/Redis-Stack-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" /></a>
 
 </div>
 
