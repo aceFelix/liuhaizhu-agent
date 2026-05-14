@@ -12,7 +12,6 @@
 ![Spring AI](https://img.shields.io/badge/Spring_AI-1.0.3-6DB33F?style=flat-square&logo=java&logoColor=white)
 ![Vue 3](https://img.shields.io/badge/Vue_3-3.x-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)
 ![Qwen3-Max](https://img.shields.io/badge/Qwen3--Max-DashScope-FF6A00?style=flat-square&logo=alibabacloud&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-9.0+-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-Stack-DC382D?style=flat-square&logo=redis&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
