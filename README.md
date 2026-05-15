@@ -201,3 +201,7 @@ docker-compose up -d --build
 ## License
 
 [MIT](./LICENSE)
+
+Copyright (c) 2025 aceFelix
+
+本项目基于 MIT 协议开源，任何人可免费学习、使用、修改和分发。
