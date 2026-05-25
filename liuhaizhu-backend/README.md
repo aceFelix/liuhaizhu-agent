@@ -10,7 +10,7 @@
 | JDK | Java | 17 |
 | 安全框架 | Spring Security + JWT (auth0) | 6.x / 4.5.0 |
 | ORM | MyBatis Plus | 3.5.12 |
-| 数据库 | MySQL | - |
+| 数据库 | MySQL | 9.5.0 |
 | 缓存 / 向量存储 | Redis Stack | - |
 | AI 框架 | Spring AI (含 DashScope 适配) | 1.0.3 |
 | 大模型 | 通义千问 Qwen3-Max | - |
@@ -342,8 +342,8 @@ liuhaizhu-ai-chat-backend/
 ### 环境要求
 
 - JDK 17+
-- Maven 3.6+
-- MySQL 8.0+
+- Maven 3.9+
+- MySQL 9.5+
 - Redis Stack（含向量搜索模块）
 - SearXNG（联网搜索需要）
 

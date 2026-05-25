@@ -64,7 +64,7 @@
                     ▼                      ▼                      ▼
              ┌──────────┐         ┌──────────────┐       ┌──────────┐
              │  MySQL   │         │  Redis Stack  │       │ SearXNG  │
-             │  8.0+    │         │ (缓存+向量)    │       │ 搜索引擎  │
+             │  9.5+    │         │ (缓存+向量)    │       │ 搜索引擎  │
              └──────────┘         └──────────────┘       └──────────┘
 ```
 
@@ -102,7 +102,7 @@
 | 后端框架 | Spring Boot 3.5.8 |
 | AI 框架 | Spring AI 1.0.3 + DashScope (Qwen3-Max) |
 | ORM | MyBatis Plus 3.5.12 |
-| 数据库 | MySQL 9.0+ |
+| 数据库 | MySQL 9.5+ |
 | 缓存/向量 | Redis Stack |
 | 搜索引擎 | SearXNG |
 | 安全 | Spring Security + JWT (auth0) |
@@ -138,8 +138,8 @@ liuhaizhu-agent/
 
 ### 环境要求
 
-- **后端**：JDK 17+ / Maven 3.6+ / MySQL 9.0+ / Redis Stack / SearXNG
-- **前端**：Node.js ^20.19.0 / Yarn 1.22+
+- **后端**：JDK 17+ / Maven 3.9+ / MySQL 9.5+ / Redis Stack / SearXNG
+- **前端**：Node.js ^22.14.0 / Yarn 1.22+
 
 ### 后端启动
 
