@@ -526,6 +526,26 @@ docker-compose down
               └── permissions：细粒度权限
 ```
 
+## 单元测试
+
+项目包含 **229 项单元测试**（JUnit 5 + Mockito），覆盖核心业务逻辑、工具类和安全模块。
+
+### 测试分类
+
+| 类别 | 测试文件 | 说明 |
+|------|---------|------|
+| 工具类 | `JwtUtilTest`, `AceResultTest`, `RateLimiterUtilTest`, `DistributedLockUtilTest`, `SSEServerUtilTest` | JWT 生成/验证、限流算法、分布式锁、SSE |
+| 枚举/MCP | `UserRoleEnumTest`, `DateToolTest`, `EmailToolTest`, `ProductToolTest`, `DocumentFormatConversionTest` | 角色枚举、MCP 工具逻辑、格式转换 |
+| Service | `AuthServiceImplTest`, `AdminUserServiceImplTest`, `ConversationServiceImplTest`, `UserProfileServiceImplTest`, `PermissionServiceImplTest`, `CustomUserDetailsServiceTest` | 认证、用户管理、会话、权限 |
+| 安全 | `CustomUserDetailsTest`, `JwtAuthenticationFilterTest` | 用户详情封装、JWT 过滤器 |
+| 已有 | `RecursiveTextSplitterTest` | 文本分片工具 |
+
+### 运行
+
+```bash
+./mvnw test
+```
+
 ## 开发规范
 
 ### 代码风格

@@ -240,6 +240,22 @@ npm run lint         # ESLint 代码检查 + 自动修复
 npm run format       # Prettier 代码格式化
 ```
 
+## 单元测试
+
+项目包含 **213 项单元测试**（Vitest + @vue/test-utils），覆盖工具函数、Pinia Store、Composable 和自定义指令，全部通过。
+
+| 类别 | 测试文件 | 说明 |
+|------|---------|------|
+| 工具函数 | `helpers.test.js`, `imageUtils.test.js` | 加密存储、验证、防抖节流、日期格式化、图片处理 |
+| 权限 | `permission.test.js`, `permission.test.js` (directive) | 角色/权限判断、v-permission 指令 |
+| Store | `auth.test.js`, `chat.test.js`, `settings.test.js`, `transition.test.js` | 认证、聊天、设置、页面过渡 |
+| Composable | `useToast.test.js` | Toast 通知系统 |
+| API | `auth.test.js` (api) | Auth API 调用验证 |
+
+```bash
+yarn test:unit
+```
+
 ## 构建与部署
 
 ### 构建产物

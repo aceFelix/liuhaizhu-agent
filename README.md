@@ -114,6 +114,7 @@
 | 容器化 | Docker + Docker Compose |
 | CI/CD | Jenkins |
 | Web 服务器 | Nginx (HTTPS + 反向代理) |
+| 测试框架 | JUnit 5 + Mockito（后端） / Vitest + @vue/test-utils（前端） |
 
 ## 目录结构
 
@@ -200,6 +201,34 @@ docker-compose up -d --build
 
 - [后端 README](./liuhaizhu-backend/README.md) — API 接口、架构设计、MCP 工具、开发规范
 - [前端 README](./liuhaizhu-frontend/README.md) — 路由表、组件说明、主题系统、权限控制
+
+## 测试覆盖
+
+项目已完成全面的单元测试覆盖，共 **442 项测试**（229 后端 + 213 前端），0 失败。
+
+| 模块 | 测试文件数 | 测试数 | 覆盖范围 |
+|------|----------|--------|---------|
+| 后端工具类 | 6 | 69 | JwtUtil, AceResult, RateLimiterUtil, DistributedLockUtil, SSEServerUtil, RecursiveTextSplitter |
+| 后端枚举/MCP | 4 | 37 | UserRoleEnum, DateTool, EmailTool, DocumentFormatConversion |
+| 后端 Service | 6 | 103 | AuthService, AdminUserService, ConversationService, UserProfileService, PermissionService, CustomUserDetailsService |
+| 后端安全 | 2 | 16 | CustomUserDetails, JwtAuthenticationFilter |
+| 后端 MCP 工具 | 1 | 12 | ProductTool（枚举转换 + CRUD） |
+| 前端 Utils | 3 | 74 | helpers, imageUtils, permission |
+| 前端 Stores | 4 | 79 | auth, chat, settings, transition |
+| 前端 Composable | 1 | 12 | useToast |
+| 前端 指令/API | 2 | 18 | v-permission, auth API |
+
+### 运行测试
+
+```bash
+# 后端
+cd liuhaizhu-backend
+./mvnw test
+
+# 前端
+cd liuhaizhu-frontend
+yarn test:unit
+```
 
 ## License
 
