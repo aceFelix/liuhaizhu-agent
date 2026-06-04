@@ -21,6 +21,7 @@
 | 邮件 | Spring Boot Mail (Jakarta Mail) | 3.5.8 |
 | Markdown 解析 | Flexmark | 0.64.8 |
 | 文档解析 | Apache Tika (Spring AI Tika Reader) | 1.0.3 |
+| 重排序 | DashScope Rerank API (qwen3-rerank) | - |
 | 工具包 | Hutool | 5.8.42 |
 | 环境变量 | dotenv-java | 3.2.0 |
 | 容器化 | Docker + Docker Compose | - |
@@ -43,8 +44,9 @@
 ### 📚 知识库检索 (RAG)
 - 基于 **Spring AI** 文档解析管道 + **Redis Vector Store** 向量存储
 - 支持多种文档格式（Tika Reader 解析 PDF、Word、TXT 等）
-- 自定义文本分割器（`RecursiveTextSplitter`）实现智能分片
+- 自定义文本分割器（`RecursiveTextSplitter`）实现智能分片（500 字符/块，50 字符重叠）
 - **异步处理**：文件先上传至 OSS，后台异步解析分片并向量化
+- **Cross-Encoder Rerank 精排**：向量粗筛后通过 DashScope `qwen3-rerank` 模型二次排序，提升检索精准度
 - 进度追踪：Redis 记录处理状态，支持实时查询任务进度
 - 文件大小限制：10MB
 
@@ -86,7 +88,7 @@
 - Token 用量统计：用户 Token 消耗汇总、每日统计
 
 ### ⚡ 高级特性
-- **请求限流**（`@RateLimit`）：支持令牌桶、滑动窗口、固定窗口三种算法，基于 Redis Lua 脚本实现
+- **请求限流**（`@RateLimit`）：支持三种限流算法（默认令牌桶），基于 Redis Lua 脚本原子化执行
 - **分布式锁**（`@DistributedLock`）：基于 Redis 的分布式锁，防止并发问题
 - **日志切面**（`LogAspect`）：自动记录方法耗时
 - **请求日志拦截器**（`RequestLogInterceptor`）：记录每个请求的 IP、耗时、状态，慢请求告警（>3s）
@@ -221,8 +223,9 @@ liuhaizhu-ai-chat-backend/
 │   │   ├── DistributedLockUtil.java   # Redis 分布式锁
 │   │   ├── JwtUtil.java               # JWT 工具
 │   │   ├── MyTokenTextSplitter.java   # 自定义文本分割器
-│   │   ├── RateLimiterUtil.java       # Redis 限流器
+│   │   ├── RateLimiterUtil.java       # Redis 限流器（令牌桶/滑动窗口/固定窗口）
 │   │   ├── RecursiveTextSplitter.java # 递归文本分割器
+│   │   ├── RerankUtil.java            # Cross-Encoder 重排序（qwen3-rerank）
 │   │   ├── SSEServerUtil.java         # SSE 连接管理
 │   │   └── UserContext.java           # 用户上下文
 │   └── LiuHaizhuAiChatApplication.java# Spring Boot 启动类
@@ -502,16 +505,39 @@ docker-compose down
 
 ### RAG 流程
 
-1. 用户上传文件 → OSS 存储 → 返回文件 URL
-2. 异步任务：TikaReader 解析文档 → RecursiveTextSplitter 分片 → DashScope Embedding 向量化 → Redis VectorStore 存储
-3. 检索时：用户问题向量化 → Redis 向量相似度搜索 → 返回 Top-K 文档片段 → 注入 LLM 对话上下文
+**文档上传处理：**
+1. 文件上传 → OSS 存储 → 返回异步任务 ID
+2. 异步任务（多阶段进度追踪）：
+   - 阶段 1（10%）：TikaReader/TextReader 解析文档
+   - 阶段 2（20%）：RecursiveTextSplitter 智能分片（500 字符/块，50 字符重叠）
+   - 阶段 3（20%-90%）：DashScope Embedding 批量向量化 → Redis VectorStore 存储
+   - 阶段 4（95%）：保存文档元数据到 Redis
+   - 阶段 5（100%）：标记完成
+
+**知识库检索（双阶段排序）：**
+1. **向量粗筛**（Top-K=20，相似度阈值 0.3）：问题向量化 → Redis 向量相似度搜索
+2. **用户过滤**：按 userId 过滤，仅返回当前用户的文档
+3. **Cross-Encoder Rerank 精排**：调用 DashScope `qwen3-rerank` API 二次排序，取 Top-5
+4. 精排后的文档片段 → 注入 LLM 对话上下文
 
 ### 限流机制
 
-- 基于 Redis Lua 脚本实现，原子性保证
-- 三种算法：令牌桶（默认）、滑动窗口、固定窗口
-- 使用 `@RateLimit` 注解声明，SpEL 解析动态 Key
-- 聊天接口 5 QPS，RAG 搜索 3 QPS
+基于 Redis Lua 脚本实现，单次原子执行，消除并发竞态。通过 `@RateLimit` 注解声明，SpEL 解析动态 Key。
+
+**三种限流算法（`RateLimiterUtil`）：**
+
+| 算法 | 方法 | 特点 | 适用场景 |
+|------|------|------|----------|
+| **令牌桶** | `tryAcquire()` | 支持突发流量，桶容量可配；使用 Redis Hash 存储令牌数和最后更新时间 | 默认算法，通用场景 |
+| **滑动窗口** | `tryAcquireWithWindow()` | 桶计数方案，将窗口等分为 N 个桶（默认 10），仅记次数不逐条记录请求；内存 O(桶数)，与 QPS 无关，10万QPS 也只用几百字节 | 需要精确控制时间段内请求数的场景 |
+| **固定窗口** | `tryAcquireWithFixedWindow()` | 简单计数器，窗口重置后从 0 开始 | 低精度限流场景 |
+
+**接口限流配置：**
+| 接口 | 算法 | 速率 | 容量 |
+|------|------|------|------|
+| 普通聊天 (`doChat`) | 令牌桶 | 5 QPS | 10 |
+| RAG 聊天 (`doChatRagSearch`) | 令牌桶 | 3 QPS | 5 |
+| 文件聊天 (`doChatWithFile`) | 令牌桶 | 3 QPS | 5 |
 
 ### 权限控制层级
 

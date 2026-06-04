@@ -7,6 +7,7 @@ import com.itfelix.liuhaizhuaichat.pojo.dto.RagDocumentDTO;
 import com.itfelix.liuhaizhuaichat.pojo.dto.RagUploadStatusDTO;
 import com.itfelix.liuhaizhuaichat.service.RAGService;
 import com.itfelix.liuhaizhuaichat.utils.RecursiveTextSplitter;
+import com.itfelix.liuhaizhuaichat.utils.RerankUtil;
 import com.itfelix.liuhaizhuaichat.records.OssUploadResult;
 import com.itfelix.liuhaizhuaichat.utils.DistributedLockUtil;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,8 @@ public class RAGServiceImpl implements RAGService {
     private final DistributedLockUtil distributedLockUtil;
     /** JSON序列化工具，用于状态对象的序列化和反序列化 */
     private final ObjectMapper objectMapper;
+    /** Cross-Encoder 重排序工具，对向量检索结果精排 */
+    private final RerankUtil rerankUtil;
 
     /** Redis中存储文档元数据的key前缀 */
     private static final String RAG_DOC_META_PREFIX = "rag:doc:meta:";
@@ -295,71 +298,66 @@ public class RAGServiceImpl implements RAGService {
         }
     }
 
+    /** Rerank 精排后保留的文档数量 */
+    private static final int RERANK_TOP_N = 5;
+    /** 向量粗筛返回数量 */
+    private static final int COARSE_TOP_K = 20;
+    /** 向量粗筛相似度阈值 */
+    private static final double COARSE_THRESHOLD = 0.3;
+
     /**
      * 从知识库中检索相关文档
      * 检索流程：
-     * 1. 构建搜索请求，设置查询文本和返回数量
-     * 2. 执行向量相似度搜索
-     * 3. 过滤出当前用户的文档
-     * 4. 返回相关文档列表
+     * 1. 向量粗筛（topK=20, threshold=0.3）
+     * 2. 按 userId 过滤
+     * 3. Cross-Encoder Rerank 精排（top 5）
+     * 4. 返回精排后的文档列表
      * @param userId 用户ID
      * @param question 用户问题
      * @return 相关文档片段列表
      */
     @Override
     public List<Document> findRagDocument(String userId, String question) {
-        log.info("开始向量搜索: userId={}, question={}", userId, question);
-        
+        log.info("开始向量粗筛: userId={}, question={}", userId, question);
+
+        // Step 1: 向量粗筛
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(question)
-                .topK(20)
-                .similarityThreshold(0.0)
+                .topK(COARSE_TOP_K)
+                .similarityThreshold(COARSE_THRESHOLD)
                 .build();
-        
-        log.info("搜索参数: topK={}, threshold={}", 20, 0.0);
-        
+
         List<Document> documents = redisVectorStore.similaritySearch(searchRequest);
-        
-        log.info("向量搜索结果数量: {}", documents.size());
-        
-        for (int i = 0; i < documents.size(); i++) {
-            Document doc = documents.get(i);
-            String docUserId = (String) doc.getMetadata().get("userId");
-            String docFileName = (String) doc.getMetadata().get("fileName");
-            String text = doc.getText();
-            log.info("结果[{}]: docUserId={}, fileName={}, text长度={}, text内容={}", 
-                    i, docUserId, docFileName, text.length(), text);
-        }
-        
+        log.info("向量粗筛结果: {} 条", documents.size());
+
+        // Step 2: 按 userId 过滤
         List<Document> userDocuments = documents.stream()
                 .filter(doc -> {
                     String docUserId = (String) doc.getMetadata().get("userId");
                     if (docUserId == null) {
-                        log.warn("发现旧数据（metadata为null），暂时也返回");
+                        log.debug("旧数据（metadata无userId），暂时保留");
                         return true;
                     }
-                    boolean match = userId.equals(docUserId);
-                    if (!match) {
-                        log.debug("用户ID不匹配: 期望={}, 实际={}", userId, docUserId);
-                    }
-                    return match;
+                    return userId.equals(docUserId);
                 })
                 .collect(Collectors.toList());
-        
-        log.info("过滤后用户文档数量: {}", userDocuments.size());
-        
-        if (!userDocuments.isEmpty()) {
-            log.info("用户 {} 知识库搜索: \"{}\", 找到 {} 个相关文档片段", userId, question, userDocuments.size());
-            Set<String> fileNames = userDocuments.stream()
+        log.info("userId 过滤后: {} 条", userDocuments.size());
+
+        // Step 3: Cross-Encoder Rerank 精排
+        List<Document> reranked = rerankUtil.rerank(question, userDocuments, RERANK_TOP_N);
+        log.info("Rerank 精排后: {} 条", reranked.size());
+
+        if (!reranked.isEmpty()) {
+            Set<String> fileNames = reranked.stream()
                     .map(doc -> (String) doc.getMetadata().get("fileName"))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
-            log.info("相关文档来源: {}", fileNames);
+            log.info("用户 {} 知识库搜索: \"{}\", 来源文件: {}", userId, question, fileNames);
         } else {
             log.info("用户 {} 知识库搜索: \"{}\", 未找到相关文档", userId, question);
         }
-        
-        return userDocuments;
+
+        return reranked;
     }
 
     /**

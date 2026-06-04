@@ -129,12 +129,4 @@ public class SSEServerUtil {
         return SSE_CLIENTS.size();
     }
 
-    /**
-     * 检查用户是否在线
-     * @param userId 用户ID
-     * @return 是否在线
-     */
-    public static boolean isOnline(String userId) {
-        return SSE_CLIENTS.containsKey(userId);
-    }
 }
