@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   INDEX `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
--- 插入默认管理员用户（生产环境务必修改默认密码）
+-- 插入默认管理员用户（密码：ChangeMe123456，BCrypt加密后的值）
 INSERT INTO `user` (`user_id`, `username`, `password`, `email`, `avatar`, `role`, `status`)
 VALUES ('1', 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin@example.com', '/images/user-avatar.jpg', 'ADMIN', 1)
 ON DUPLICATE KEY UPDATE `username` = `username`;

@@ -5,7 +5,7 @@ spring:
     active: dev
   mvc:
     async:
-      request-timeout: 60000
+      request-timeout: 300000
 
   # 数据源
   datasource:
@@ -60,7 +60,7 @@ spring:
         options:
           model: qwen3-rerank
       # 线上
-      # api-key: ${spring.ai.dashscope.api-key}
+      api-key: ${spring.ai.dashscope.api-key}
       # 本地
       # api-key: ${DASHSCOPE_API_KEY}
       embedding:
@@ -128,6 +128,11 @@ websearch:
     url: ${websearch.searxng.url}
     count: 10
 
+# Query 改写（RAG 检索优化）
+dashscope:
+  rewrite:
+    model: qwen-flash
+
 # mybatis-plus
 mybatis-plus:
   configuration:
@@ -170,7 +175,7 @@ dromara:
         secret-key: ${dromara.x-file-storage.aliyun-oss[0].secret-key}
         end-point: ${dromara.x-file-storage.aliyun-oss[0].end-point}
         bucket-name: ${dromara.x-file-storage.aliyun-oss[0].bucket-name}
-        # 访问域名
+        # 访问域名，注意"/"结尾，例如：https://abc.oss-cn-shanghai.aliyuncs.com/
         domain: ${dromara.x-file-storage.aliyun-oss[0].domain}
         # 基础路径
         base-path: ${dromara.x-file-storage.aliyun-oss[0].base-path}

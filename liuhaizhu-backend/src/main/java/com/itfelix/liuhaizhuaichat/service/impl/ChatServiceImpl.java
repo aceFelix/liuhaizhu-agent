@@ -6,12 +6,14 @@ import com.itfelix.liuhaizhuaichat.pojo.dto.ChatDTO;
 import com.itfelix.liuhaizhuaichat.pojo.dto.ChatResponseDTO;
 import com.itfelix.liuhaizhuaichat.pojo.dto.WebSearchResult;
 import com.itfelix.liuhaizhuaichat.pojo.entity.User;
+import com.itfelix.liuhaizhuaichat.pojo.entity.ChatMessage;
 import com.itfelix.liuhaizhuaichat.enums.SSEMessageType;
 import com.itfelix.liuhaizhuaichat.service.ChatService;
 import com.itfelix.liuhaizhuaichat.service.SearXngService;
 import com.itfelix.liuhaizhuaichat.service.ConversationService;
 import com.itfelix.liuhaizhuaichat.mapper.UserMapper;
 import com.itfelix.liuhaizhuaichat.utils.SSEServerUtil;
+import com.itfelix.liuhaizhuaichat.utils.QueryRewriteUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
@@ -29,6 +31,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import reactor.util.retry.Retry;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+
 /**
  * @author aceFelix
  */
@@ -36,11 +41,14 @@ import java.util.stream.Collectors;
 @Service
 public class ChatServiceImpl implements ChatService {
     @Autowired
-    @Qualifier("qwen3-max")
-    private ChatClient qwen3MaxChatClient;
+    @Qualifier("qwen")
+    private ChatClient qwenChatClient;
 
     @Autowired
     private SearXngService searXngService;
+
+    @Autowired
+    private QueryRewriteUtil queryRewriteUtil;
 
     @Autowired
     private ConversationService conversationService;
@@ -198,8 +206,14 @@ public class ChatServiceImpl implements ChatService {
             conversationService.saveUserMessage(conversationId, userId, question, userMessageId);
         }
         
+        // Query 改写：将口语化问题转为搜索关键词，提高搜索质量
+        String searchQuery = queryRewriteUtil.rewrite(question);
+        if (!searchQuery.equals(question)) {
+            log.info("搜索 Query 改写: \"{}\" → \"{}\"", question, searchQuery);
+        }
+
         // 构建提示词
-        List<WebSearchResult> search = searXngService.search(question);
+        List<WebSearchResult> search = searXngService.search(searchQuery);
         StringBuffer context = new StringBuffer();
         for (WebSearchResult webSearchResult : search) {
             // context.append(webSearchResult.getTitle()).append("\n").append(webSearchResult.getContent()).append("\n");
@@ -249,21 +263,20 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
+    /** 上下文记忆保留轮数 */
+    private static final int MEMORY_ROUNDS = 7;
+
     /**
      * 与大模型交互方法，将响应内容实时推送给前端
-     * 使用异步处理避免阻塞，添加完善的异常处理和资源清理
-     * @param userId 用户ID
-     * @param prompt 提示词
-     * @param botMessageId AI消息ID
-     * @param conversationId 会话ID
+     * 注入最近 7 轮对话历史，实现多轮记忆
      */
     @Async
     public CompletableFuture<Void> pushMessage(String userId, String prompt, String botMessageId, String conversationId) {
         List<String> contentList = new ArrayList<>();
-        
+
         try {
             log.info("开始处理AI对话, userId: {}, conversationId: {}", userId, conversationId);
-            
+
             // 获取用户信息
             User user = userMapper.selectById(userId);
             String userEmail = user != null ? user.getEmail() : null;
@@ -272,21 +285,55 @@ public class ChatServiceImpl implements ChatService {
             // 在提示词中加入用户信息，让AI知道当前用户的信息
             String enhancedPrompt = buildPromptWithUserInfo(prompt, userId, userName, userEmail);
 
-            // 调用大模型流式输出，设置超时时间120秒
-            Flux<String> result = qwen3MaxChatClient.prompt(enhancedPrompt)
+            // 加载最近 7 轮对话历史，拼接进上下文
+            String fullPrompt = enhancedPrompt;
+            if (conversationId != null) {
+                try {
+                    List<ChatMessage> history = conversationService.getConversationDetail(conversationId, userId);
+                    if (history != null && !history.isEmpty()) {
+                        // 只保留最近 7 轮（14 条消息：7 条 user + 7 条 assistant）
+                        int maxMsgs = MEMORY_ROUNDS * 2;
+                        List<ChatMessage> recentHistory = history.size() > maxMsgs
+                                ? history.subList(history.size() - maxMsgs, history.size())
+                                : history;
+                        // 排除即将作为新消息发送的当前 prompt，避免重复
+                        // （当前 prompt 对应的 user 消息已由 doChatXxx 方法先写入 DB）
+                        StringBuilder historyText = new StringBuilder();
+                        historyText.append("【之前的对话历史】\n");
+                        for (ChatMessage msg : recentHistory) {
+                            String roleLabel = "user".equals(msg.getRole()) ? "用户" : "刘海柱";
+                            String content = msg.getContent();
+                            if (content != null && content.length() > 500) {
+                                content = content.substring(0, 500) + "...";
+                            }
+                            historyText.append(roleLabel).append(": ").append(content).append("\n");
+                        }
+                        historyText.append("\n");
+                        fullPrompt = historyText.toString() + enhancedPrompt;
+                        log.info("注入对话历史: 总计{}条, 截取{}条", history.size(), recentHistory.size());
+                    }
+                } catch (Exception e) {
+                    log.warn("加载对话历史失败，降级为单轮对话: {}", e.getMessage());
+                }
+            }
+
+            // 调用大模型流式输出
+            Flux<String> result = qwenChatClient.prompt(fullPrompt)
                     .stream()
                     .content()
+                    .retryWhen(Retry.backoff(2, Duration.ofSeconds(1))
+                            .filter(th -> th instanceof WebClientRequestException))
                     .timeout(Duration.ofSeconds(120));
 
             // 实时推送每个Token
             result.toStream()
                     .map(chatResponse -> {
                         String content = chatResponse.toString();
-                        
+
                         // 推送增量消息
                         SSEServerUtil.sendMessage(userId, content, SSEMessageType.ADD);
                         log.debug("推送Token: {}", content);
-                        
+
                         return content;
                     })
                     .forEach(contentList::add);
@@ -308,26 +355,22 @@ public class ChatServiceImpl implements ChatService {
             // 发送完成信号
             ChatResponseDTO chatResponseDTO = new ChatResponseDTO(fullContent, botMessageId);
             SSEServerUtil.sendMessage(userId, JSONUtil.toJsonStr(chatResponseDTO), SSEMessageType.FINISH);
-            
+
             return CompletableFuture.completedFuture(null);
-            
+
         } catch (Exception e) {
             log.error("AI对话处理失败, userId: {}, conversationId: {}", userId, conversationId, e);
-            
-            // 发送错误消息给前端
-            String errorMessage = "AI服务暂时不可用，请稍后重试";
-            SSEServerUtil.sendMessage(userId, errorMessage, SSEMessageType.ERROR);
-            
-            // 发送失败响应
-            ChatResponseDTO errorResponse = new ChatResponseDTO(errorMessage, botMessageId);
-            SSEServerUtil.sendMessage(userId, JSONUtil.toJsonStr(errorResponse), SSEMessageType.FINISH);
-            
-            // 清理SSE连接
-            SseEmitter emitter = SSEServerUtil.getSseClients().get(userId);
-            if (emitter != null) {
-                SSEServerUtil.remove(userId, emitter);
+
+            // 仅在SSE连接存活时才尝试推送错误信息，避免Broken pipe级联异常
+            if (SSEServerUtil.isClientConnected(userId)) {
+                String errorMessage = "AI服务暂时不可用，请稍后重试";
+                SSEServerUtil.sendMessage(userId, errorMessage, SSEMessageType.ERROR);
+
+                // 发送失败响应
+                ChatResponseDTO errorResponse = new ChatResponseDTO(errorMessage, botMessageId);
+                SSEServerUtil.sendMessage(userId, JSONUtil.toJsonStr(errorResponse), SSEMessageType.FINISH);
             }
-            
+
             return CompletableFuture.failedFuture(e);
         }
     }

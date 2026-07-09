@@ -1,7 +1,7 @@
 # 1.运行docker命令启动应用
 # 以下配置以你的实际为准
 docker run -d \
-  -p 8080:8080 \
+  -p 8000:8000 \
   -m 768m \
   --memory-swap 768m \
   -e spring.datasource.host=localhost \
@@ -13,7 +13,7 @@ docker run -d \
   -e spring.data.redis.port=6379 \
   -e spring.data.redis.password=your_redis_password \
   -e DASHSCOPE_API_KEY=your_api_key \
-  -v /path/to/app/logs:/app/logs \
+  -v /root/liuhaizhu/logs:/app/logs \
   --name liuhaizhu-backend \
   --restart unless-stopped \
   liuhaizhu-backend:latest

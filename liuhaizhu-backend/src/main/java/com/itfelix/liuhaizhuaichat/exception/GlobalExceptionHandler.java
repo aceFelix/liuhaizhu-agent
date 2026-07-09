@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.HashMap;
@@ -114,5 +115,15 @@ public class GlobalExceptionHandler {
         log.warn("资源未找到: {}", e.getRequestURL());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(AceResult.error("请求的资源不存在"));
+    }
+
+    /**
+     * 处理SSE客户端断连异常
+     * 客户端主动断开SSE连接时触发，属于正常行为，不记录ERROR日志
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleAsyncRequestNotUsableException(AsyncRequestNotUsableException e) {
+        // SSE连接被客户端关闭属于正常行为，仅DEBUG级别记录
+        log.debug("SSE客户端已断开连接: {}", e.getMessage());
     }
 }

@@ -57,7 +57,7 @@
               <p>A: 您可以通过以下方式联系我们：</p>
               <ul>
                 <li>邮箱：contact@example.com</li>
-                <li>GitHub：github.com/your-username</li>
+                <li>GitHub：github.com/aceFelix/liuhaizhu-agent</li>
               </ul>
             </section>
           </div>

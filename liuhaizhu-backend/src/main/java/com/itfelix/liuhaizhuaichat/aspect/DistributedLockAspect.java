@@ -13,18 +13,21 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
 /**
  * 分布式锁切面
+ * 优先级最低：涉及 Redis 锁获取/等待/释放，开销最大，排在最后
  * @author aceFelix
  */
 @Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Order(3)
 public class DistributedLockAspect {
 
     private final DistributedLockUtil distributedLockUtil;

@@ -19,9 +19,12 @@ public class WebSearchController {
      * 启用联网搜索
      * @param chatDTO
      */
-    @PostMapping("query")
+    @PostMapping(value = "query", produces = "text/event-stream;charset=UTF-8")
     public void webSearch(@RequestBody ChatDTO chatDTO, HttpServletResponse response) {
+        response.setContentType("text/event-stream");
         response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Connection", "keep-alive");
         chatService.doChatWebSearch(chatDTO);
     }
 }

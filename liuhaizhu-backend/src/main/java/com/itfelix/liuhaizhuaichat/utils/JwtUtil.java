@@ -23,7 +23,7 @@ public class JwtUtil {
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:liuhaizhu-ai-chat-secret-key-2025}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}")

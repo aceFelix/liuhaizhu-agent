@@ -81,7 +81,7 @@
               </div>
               <div class="info-content">
                 <span class="info-label">性别 / 年龄</span>
-                <span class="info-value">男 / 24岁</span>
+                <span class="info-value">男 / 25岁</span>
               </div>
             </div>
             <div class="info-card">
@@ -104,8 +104,8 @@
               </div>
               <div class="info-content">
                 <span class="info-label">现居地</span>
-                <span class="info-value">贵阳市观山湖区</span>
-                <span class="info-sub">4132有活科技CEO/食里香老素粉总店主理人</span>
+                <span class="info-value">浙江杭州</span>
+                <span class="info-sub">4132有活科技CEO/壹生赋能CEO</span>
               </div>
             </div>
             <div class="info-card">
@@ -117,7 +117,7 @@
               <div class="info-content">
                 <span class="info-label">职业身份</span>
                 <span class="info-value">数字游民</span>
-                <span class="info-sub">JavaWeb开发 · 大模型应用开发 · 餐饮服务</span>
+                <span class="info-sub">Java全栈开发 · 大模型应用开发 · 餐饮服务</span>
               </div>
             </div>
             <div class="info-card contact-card">
@@ -130,12 +130,12 @@
                 <span class="info-label">联系方式</span>
                 <div class="contact-list">
                   <div class="contact-item">
-                    <span class="contact-type">邮箱</span>
+                    <span class="contact-type">网易邮箱</span>
                     <a href="mailto:contact@example.com" class="contact-value">contact@example.com</a>
                   </div>
                   <div class="contact-item">
-                    <span class="contact-type">备用邮箱</span>
-                    <a href="mailto:support@example.com" class="contact-value">support@example.com</a>
+                    <span class="contact-type">谷歌邮箱</span>
+                    <a href="mailto:contact@example.com" class="contact-value">contact@example.com</a>
                   </div>
                 </div>
               </div>
@@ -322,7 +322,7 @@
                 height="70px"
                 radius="8px"
               />
-              <span class="footer-qrcode-label">WeChat: your_wechat</span>
+              <span class="footer-qrcode-label">WeChat: felixx8m</span>
             </div>
             <div class="footer-qrcode-item">
               <LazyImage
@@ -333,7 +333,7 @@
                 height="70px"
                 radius="8px"
               />
-              <span class="footer-qrcode-label">QQ: your_qq</span>
+              <span class="footer-qrcode-label">QQ: placeholder</span>
             </div>
           </div>
           <div class="footer-center">

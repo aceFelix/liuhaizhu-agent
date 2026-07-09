@@ -42,7 +42,7 @@ services:
       - spring.ai.mcp.client.stdio.connections.amap-maps.command=node
       - spring.ai.mcp.client.stdio.connections.amap-maps.args=/path/to/amap-server.js
     volumes:
-      - /path/to/app/logs:/app/logs
+      - /root/liuhaizhu/logs:/app/logs
     # 内存限制（2GB服务器）
     mem_limit: 768m
     mem_reservation: 512m

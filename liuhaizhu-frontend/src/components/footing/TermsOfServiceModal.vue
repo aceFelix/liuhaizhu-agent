@@ -61,8 +61,8 @@
             <section>
               <h3>七、联系我们</h3>
               <ul>
-                <li>邮箱：contact@example.com</li>
-                <li>GitHub：github.com/your-username</li>
+                <li>邮箱：famingxu838@gmail.com</li>
+                <li>GitHub：github.com/aceFelix/liuhaizhu-agent</li>
               </ul>
             </section>
           </div>

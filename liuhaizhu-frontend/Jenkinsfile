@@ -4,7 +4,7 @@ pipeline {
     environment {
         // 项目配置
         PROJECT_NAME = 'liuhaizhu-chat'
-        DEPLOY_DIR = '/path/to/deploy/liuhaizhu-vue3'
+        DEPLOY_DIR = '/root/liuhaizhu-vue3'
         IMAGE_NAME = 'liuhaizhu-chat'
         IMAGE_TAG = "${BUILD_NUMBER}"
         
@@ -54,7 +54,7 @@ pipeline {
                 script {
                     sshagent(credentials: ['deploy-server-ssh']) {
                         sh """
-                            ssh -o StrictHostKeyChecking=yes ${SERVER_USER}@${SERVER_HOST} << 'EOF'
+                            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} << 'EOF'
                                 cd ${DEPLOY_DIR}
                                 
                                 # 停止并删除旧容器

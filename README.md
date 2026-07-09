@@ -75,9 +75,9 @@
 
 ### 后端
 
-- **AI 智能对话**：基于 Qwen3-Max 模型 + Spring AI，SSE 流式响应，30 轮对话窗口记忆
-- **联网搜索**：集成 SearXNG 搜索引擎，搜索结果注入 LLM 对话上下文
-- **知识库检索（RAG）**：Tika 文档解析 → 递归文本分割 → Redis 向量存储 → 语义检索
+- **AI 智能对话**：基于 Qwen3-Max 模型 + Spring AI，SSE 流式响应，数据库持久化的 7 轮对话历史上下文记忆
+- **联网搜索**：集成 SearXNG 搜索引擎，**Query 改写**优化搜索关键词，搜索结果注入 LLM 对话上下文
+- **知识库检索（RAG）**：Tika 文档解析 → 递归文本分割 → **qwen-flash Query 改写** → Redis 向量存储 → 语义检索 → qwen3-rerank Cross-Encoder 重排序
 - **MCP 工具调用**：内置 DateTool / EmailTool / ProductTool，支持外部 MCP Server（如高德地图）
 - **用户系统**：邮箱验证注册、JWT 双 Token 认证（Access 24h + Refresh 7d）、BCrypt 密码加密
 - **权限控制**：Spring Security + 自定义注解（`@RequirePermission`）+ AOP 切面

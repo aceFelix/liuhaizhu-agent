@@ -265,7 +265,7 @@
                 height="70px"
                 radius="8px"
               />
-              <span class="footer-qrcode-label">WeChat: your_wechat</span>
+              <span class="footer-qrcode-label">WeChat: felixx8m</span>
             </div>
             <div class="footer-qrcode-item">
               <LazyImage
@@ -276,7 +276,7 @@
                 height="70px"
                 radius="8px"
               />
-              <span class="footer-qrcode-label">QQ: your_qq</span>
+              <span class="footer-qrcode-label">QQ: placeholder</span>
             </div>
           </div>
           <div class="footer-center">

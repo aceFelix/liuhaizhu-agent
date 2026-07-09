@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -18,14 +19,16 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** 
+/**
  * 权限切面 - 处理@RequirePermission注解
+ * 优先级居中：从 SecurityContext 读取，纯内存操作，排在限流之后
  * @author aceFelix
  */
 @Aspect
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Order(2)
 public class PermissionAspect {
 
     private final PermissionService permissionService;

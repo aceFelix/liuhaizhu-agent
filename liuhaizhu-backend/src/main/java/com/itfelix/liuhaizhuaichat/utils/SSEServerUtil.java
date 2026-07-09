@@ -21,10 +21,23 @@ public class SSEServerUtil {
 
     /** 
      * 创建SSE连接
+     * 如果该userId已存在旧连接，先关闭旧连接再创建新的，防止重复连接导致Broken pipe
      * @param userId
      * @return
      */
     public static SseEmitter connect(String userId){
+        // 关闭并移除旧连接，防止同一userId存在多个连接
+        SseEmitter oldEmitter = SSE_CLIENTS.get(userId);
+        if (oldEmitter != null) {
+            log.warn("检测到userId重复连接，关闭旧连接: {}", userId);
+            try {
+                oldEmitter.complete();
+            } catch (Exception ignored) {
+                // 旧连接可能已经断开，忽略关闭异常
+            }
+            SSE_CLIENTS.remove(userId, oldEmitter);
+        }
+
         SseEmitter sseEmitter = new SseEmitter(0L);
 
         sseEmitter.onTimeout(timeoutCallback(userId, sseEmitter));
@@ -69,6 +82,7 @@ public class SSEServerUtil {
 
     /**
      * 发送消息方法
+     * IOException (如Broken pipe) 是正常的客户端断连行为，降级为WARN而非ERROR
      * @param sseEmitter
      * @param userId
      * @param message
@@ -82,7 +96,7 @@ public class SSEServerUtil {
         try {
             sseEmitter.send(msgEvent);
         } catch (IOException e) {
-            log.error("SSE连接异常...{}",e.getMessage());
+            log.warn("SSE连接断开(Broken pipe)，移除连接: userId={}", userId);
             remove(userId, sseEmitter);
         }
     }
@@ -111,6 +125,26 @@ public class SSEServerUtil {
     public static void remove(String userId, SseEmitter sseEmitter){
         SSE_CLIENTS.remove(userId, sseEmitter);
         log.info("SSE连接被移除...移除的用户id为:{}", userId);
+    }
+
+    /**
+     * 检查指定userId的SSE连接是否存活
+     * @param userId 用户id
+     * @return true-连接存活，false-不存在或已断开
+     */
+    public static boolean isClientConnected(String userId) {
+        if (userId == null) return false;
+        SseEmitter emitter = SSE_CLIENTS.get(userId);
+        if (emitter == null) return false;
+        try {
+            // 尝试发送一个空注释来探测连接（不占前端带宽的SSE注释行）
+            emitter.send(SseEmitter.event().comment(""));
+            return true;
+        } catch (Exception e) {
+            // 探测失败说明连接已断开，清理之
+            remove(userId, emitter);
+            return false;
+        }
     }
 
     /**

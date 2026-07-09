@@ -175,7 +175,7 @@
                   <span class="link-name">Gitee</span>
                   <span class="link-desc">国内开源社区及代码托管平台</span>
                 </a>
-                <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="link-item">
+                <a href="https://github.com/aceFelix/liuhaizhu-agent" target="_blank" rel="noopener noreferrer" class="link-item">
                   <span class="link-name">GitHub</span>
                   <span class="link-desc">全球最大的开源社区及代码托管平台</span>
                 </a>

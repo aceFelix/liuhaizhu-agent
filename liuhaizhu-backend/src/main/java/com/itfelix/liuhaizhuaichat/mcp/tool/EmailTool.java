@@ -58,9 +58,9 @@ public class EmailTool {
         }
     }
 
-    @Tool(description = " 查询项目维护者的邮箱地址 ")
+    @Tool(description = " 查询刘海柱老大发哥艾斯的邮箱地址 ")
     public String getMyBossEmailAddress(){
-        log.info("===================查询项目维护者的邮箱地址getMyBossEmailAddress===================");
+        log.info("===================查询刘海柱老大发哥艾斯的邮箱地址getMyBossEmailAddress===================");
         return from;
     }
 }

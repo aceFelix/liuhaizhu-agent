@@ -44,11 +44,16 @@
                   <span class="info-label">邮箱：</span>
                   <div class="info-items">
                     <a href="mailto:contact@example.com" class="info-link">contact@example.com</a>
+                    <a href="mailto:contact@example.com" class="info-link">contact@example.com</a>
                   </div>
                 </div>
                 <div class="info-group">
                   <span class="info-label">GitHub：</span>
-                  <a href="https://github.com/your-username" target="_blank" rel="noopener noreferrer" class="info-link">https://github.com/your-username</a>
+                  <a href="https://github.com/aceFelix/liuhaizhu-agent" target="_blank" rel="noopener noreferrer" class="info-link">https://github.com/aceFelix/liuhaizhu-agent</a>
+                </div>
+                <div class="info-group">
+                  <span class="info-label">Gitee：</span>
+                  <a href="https://gitee.com/aceFelix" target="_blank" rel="noopener noreferrer" class="info-link">https://gitee.com/aceFelix</a>
                 </div>
               </div>
             </div>
@@ -56,11 +61,11 @@
             <div class="qrcode-section">
               <div class="qrcode-item">
                 <img src="/contactInformation/wechat-qrcode.png" alt="微信二维码" class="qrcode-img" />
-                <span class="qrcode-label">WeChat: your_wechat</span>
+                <span class="qrcode-label">WeChat：felixx8m</span>
               </div>
               <div class="qrcode-item">
                 <img src="/contactInformation/qq-qrcode.png" alt="QQ二维码" class="qrcode-img" />
-                <span class="qrcode-label">QQ: your_qq</span>
+                <span class="qrcode-label">QQ：placeholder</span>
               </div>
             </div>
           </div>

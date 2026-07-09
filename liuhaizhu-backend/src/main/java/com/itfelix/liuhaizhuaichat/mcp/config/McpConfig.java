@@ -20,7 +20,7 @@ public class McpConfig {
     public List<NamedClientMcpTransport> mcpClientTransport() {
         McpClientTransport transport = HttpClientSseClientTransport
                 .builder("https://mcp.amap.com")
-                .sseEndpoint("/sse?key=99e096fb1e17eb5be1af128f95060711")
+                .sseEndpoint("/sse?key=${AMAP_MAPS_API_KEY}")
                 .objectMapper(new ObjectMapper())
                 .build();
         return Collections.singletonList(new NamedClientMcpTransport("amap", transport));

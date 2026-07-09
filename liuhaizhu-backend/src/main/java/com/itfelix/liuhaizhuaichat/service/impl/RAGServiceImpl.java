@@ -8,6 +8,7 @@ import com.itfelix.liuhaizhuaichat.pojo.dto.RagUploadStatusDTO;
 import com.itfelix.liuhaizhuaichat.service.RAGService;
 import com.itfelix.liuhaizhuaichat.utils.RecursiveTextSplitter;
 import com.itfelix.liuhaizhuaichat.utils.RerankUtil;
+import com.itfelix.liuhaizhuaichat.utils.QueryRewriteUtil;
 import com.itfelix.liuhaizhuaichat.records.OssUploadResult;
 import com.itfelix.liuhaizhuaichat.utils.DistributedLockUtil;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,8 @@ public class RAGServiceImpl implements RAGService {
     private final ObjectMapper objectMapper;
     /** Cross-Encoder 重排序工具，对向量检索结果精排 */
     private final RerankUtil rerankUtil;
+    /** Query 改写工具，将用户口语化问题改写为检索友好形式 */
+    private final QueryRewriteUtil queryRewriteUtil;
 
     /** Redis中存储文档元数据的key前缀 */
     private static final String RAG_DOC_META_PREFIX = "rag:doc:meta:";
@@ -308,6 +311,7 @@ public class RAGServiceImpl implements RAGService {
     /**
      * 从知识库中检索相关文档
      * 检索流程：
+     * 0. Query 改写（qwen-flash 将口语化问题转为检索友好关键词）
      * 1. 向量粗筛（topK=20, threshold=0.3）
      * 2. 按 userId 过滤
      * 3. Cross-Encoder Rerank 精排（top 5）
@@ -318,11 +322,17 @@ public class RAGServiceImpl implements RAGService {
      */
     @Override
     public List<Document> findRagDocument(String userId, String question) {
-        log.info("开始向量粗筛: userId={}, question={}", userId, question);
+        log.info("开始 RAG 检索: userId={}, question={}", userId, question);
 
-        // Step 1: 向量粗筛
+        // Step 0: Query 改写，将口语化问题转为检索友好的关键词
+        String rewrittenQuery = queryRewriteUtil.rewrite(question);
+        if (!rewrittenQuery.equals(question)) {
+            log.info("Query 改写: \"{}\" → \"{}\"", question, rewrittenQuery);
+        }
+
+        // Step 1: 向量粗筛（使用改写后的 query）
         SearchRequest searchRequest = SearchRequest.builder()
-                .query(question)
+                .query(rewrittenQuery)
                 .topK(COARSE_TOP_K)
                 .similarityThreshold(COARSE_THRESHOLD)
                 .build();

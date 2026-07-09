@@ -13,18 +13,21 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
 /**
  * 请求限流切面
+ * 优先级最高：轻量级 Redis Lua 调用，快速失败，避免后续切面做无用功
  * @author aceFelix
  */
 @Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Order(1)
 public class RateLimitAspect {
 
     private final RateLimiterUtil rateLimiterUtil;

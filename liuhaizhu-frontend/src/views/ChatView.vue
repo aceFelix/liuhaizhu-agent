@@ -301,6 +301,7 @@ const showUserProfile = ref(false)
 const isStreaming = ref(false)
 const isUploading = ref(false)
 const isConnectingSSE = ref(false) // SSE连接中状态
+const sseConnected = ref(false) // SSE连接已就绪标志
 const uploadedFile = ref(null)
 const fileInput = ref(null)
 
@@ -389,6 +390,7 @@ onBeforeUnmount(() => {
 })
 
 const cleanupSSE = () => {
+  sseConnected.value = false
   if (sseHeartbeatTimer) {
     clearInterval(sseHeartbeatTimer)
     sseHeartbeatTimer = null
@@ -403,9 +405,9 @@ const cleanupSSE = () => {
   }
 }
 
-// 检查SSE连接状态
+// 检查SSE连接状态（同时检查EventSource状态和业务层connected标志）
 const isSSEConnected = () => {
-  return sseConnection && sseConnection.readyState === EventSource.OPEN
+  return sseConnected.value && sseConnection && sseConnection.readyState === EventSource.OPEN
 }
 
 // 确保SSE连接可用并等待连接就绪（自动重试，最多30秒）
@@ -474,6 +476,14 @@ const initSSE = () => {
     return Promise.reject(new Error('SSE重连次数超过限制'))
   }
 
+  // 防止并发调用创建多个连接
+  if (isConnectingSSE.value) {
+    console.log('SSE正在连接中，跳过重复调用')
+    return Promise.reject(new Error('SSE正在连接中'))
+  }
+
+  isConnectingSSE.value = true
+
   return new Promise((resolve, reject) => {
     try {
       sseConnection = connectSSE(userId.value, authStore.token)
@@ -535,6 +545,8 @@ const initSSE = () => {
       sseConnection.addEventListener('connected', () => {
         clearTimeout(connectionTimeout)
         console.log('SSE收到connected确认事件，连接已就绪')
+        sseConnected.value = true
+        isConnectingSSE.value = false
         reconnectAttempts = 0
         startHeartbeat()
         resolve()
@@ -548,6 +560,8 @@ const initSSE = () => {
       sseConnection.onerror = () => {
         clearTimeout(connectionTimeout)
         console.error('SSE连接断开，3秒后自动重连...')
+        sseConnected.value = false
+        isConnectingSSE.value = false
         isLoading.value = false
         reconnectAttempts++
         reject(new Error('SSE连接失败'))
@@ -557,6 +571,8 @@ const initSSE = () => {
       sseConnection.onopen = () => {
         clearTimeout(connectionTimeout)
         console.log('SSE连接成功(onopen)')
+        sseConnected.value = true
+        isConnectingSSE.value = false
         reconnectAttempts = 0
         startHeartbeat()
         resolve() // 兜底resolve，如果connected事件已经resolve过则无效

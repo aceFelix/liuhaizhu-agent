@@ -38,7 +38,7 @@ public class TitleGenerationServiceImpl implements TitleGenerationService {
     private ChatMessageMapper chatMessageMapper;
     
     @Autowired
-    @Qualifier("qwen3-max")
+    @Qualifier("qwen")
     private ChatClient chatClient;
     
     // 标题生成提示词

@@ -49,19 +49,3 @@ src/main/resources/.env
 
 ### 项目文档 ###
 docs
-
-### SSL 证书和密钥 ###
-*.pem
-*.key
-*.crt
-*.p12
-*.jks
-
-### 日志文件 ###
-logs/
-*.log
-
-### 敏感配置文件 ###
-.env
-.env.local
-.env.*.local

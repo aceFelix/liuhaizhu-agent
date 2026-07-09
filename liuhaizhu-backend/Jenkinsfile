@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         PROJECT_NAME = 'liuhaizhu-backend'
-        DEPLOY_DIR = '/path/to/deploy/liuhaizhu-backend'
+        DEPLOY_DIR = '/root/liuhaizhu-backend'
         IMAGE_NAME = 'liuhaizhu-backend'
         IMAGE_TAG = "${BUILD_NUMBER}"
 
@@ -53,7 +53,7 @@ pipeline {
                 script {
                     sshagent(credentials: ['deploy-server-ssh']) {
                         sh """
-                            ssh -o StrictHostKeyChecking=yes ${SERVER_USER}@${SERVER_HOST} << 'EOF'
+                            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} << 'EOF'
                                 cd ${DEPLOY_DIR}
 
                                 docker-compose down || true
