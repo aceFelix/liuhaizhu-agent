@@ -20,6 +20,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -57,8 +58,20 @@ public class ChatServiceImpl implements ChatService {
     private UserMapper userMapper;
 
     @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
     @Lazy
     private ChatServiceImpl self;
+
+    /** 非登录用户匿名聊天最大轮数 */
+    private static final int ANONYMOUS_MAX_ROUNDS = 5;
+
+    /** 匿名聊天计数 Redis key 前缀 */
+    private static final String ANONYMOUS_CHAT_COUNT_KEY = "anonymous:chat:count:";
+
+    /** 匿名聊天计数过期时间（24小时） */
+    private static final long ANONYMOUS_COUNT_TTL_HOURS = 24;
 
     /**
      * 与大模型交互
@@ -73,6 +86,11 @@ public class ChatServiceImpl implements ChatService {
         String botMessageId = chatDTO.getBotMessageId();
         String conversationId = chatDTO.getConversationId();
         String userMessageId = chatDTO.getUserMessageId();
+
+        // 非登录用户（conversationId为null）限制最多5轮对话
+        if (conversationId == null && !checkAnonymousLimit(userId, botMessageId)) {
+            return;
+        }
 
         // 保存用户消息到数据库（仅当conversationId不为null时保存）
         if (conversationId != null && userMessageId != null) {
@@ -200,6 +218,11 @@ public class ChatServiceImpl implements ChatService {
         String botMessageId = chatDTO.getBotMessageId();
         String conversationId = chatDTO.getConversationId();
         String userMessageId = chatDTO.getUserMessageId();
+
+        // 非登录用户（conversationId为null）限制最多5轮对话
+        if (conversationId == null && !checkAnonymousLimit(userId, botMessageId)) {
+            return;
+        }
         
         // 保存用户消息到数据库
         if (conversationId != null && userMessageId != null) {
@@ -247,6 +270,11 @@ public class ChatServiceImpl implements ChatService {
         String userMessageId = chatDTO.getUserMessageId();
         String fileContent = chatDTO.getFileContent();
         String fileName = chatDTO.getFileName();
+
+        // 非登录用户（conversationId为null）限制最多5轮对话
+        if (conversationId == null && !checkAnonymousLimit(userId, botMessageId)) {
+            return;
+        }
 
         // 保存用户消息到数据库
         if (conversationId != null && userMessageId != null) {
@@ -393,6 +421,26 @@ public class ChatServiceImpl implements ChatService {
         sb.append("【用户消息】\n");
         sb.append(originalPrompt);
         return sb.toString();
+    }
+
+    /**
+     * 检查匿名（非登录）用户对话轮数限制
+     * @return true-未超限可继续, false-已达到上限
+     */
+    private boolean checkAnonymousLimit(String userId, String botMessageId) {
+        String countKey = ANONYMOUS_CHAT_COUNT_KEY + userId;
+        Long count = stringRedisTemplate.opsForValue().increment(countKey);
+        if (count == 1) {
+            stringRedisTemplate.expire(countKey, Duration.ofHours(ANONYMOUS_COUNT_TTL_HOURS));
+        }
+        if (count != null && count > ANONYMOUS_MAX_ROUNDS) {
+            log.info("匿名用户对话轮数已达上限，userId: {}, count: {}", userId, count);
+            SSEServerUtil.sendMessage(userId, "兄弟，你还没登录呢，最多聊5轮就得登录了。赶紧去登录吧！", SSEMessageType.ERROR);
+            ChatResponseDTO limitResponse = new ChatResponseDTO("兄弟，你还没登录呢，最多聊5轮就得登录了。赶紧去登录吧！", botMessageId);
+            SSEServerUtil.sendMessage(userId, JSONUtil.toJsonStr(limitResponse), SSEMessageType.FINISH);
+            return false;
+        }
+        return true;
     }
 
     private int estimateTokenCount(String text) {
