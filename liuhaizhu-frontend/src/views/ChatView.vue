@@ -533,11 +533,12 @@ const initSSE = () => {
         console.error('SSE收到错误事件:', event.data)
         isLoading.value = false
         isStreaming.value = false
+        const errorMsg = (event.data && event.data.trim()) ? event.data : '抱歉，AI服务暂时不可用，请稍后重试。'
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg && lastMsg.role === 'assistant' && !lastMsg.content) {
-          lastMsg.content = '抱歉，AI服务暂时不可用，请稍后重试。'
+          lastMsg.content = errorMsg
         } else if (!lastMsg || lastMsg.role !== 'assistant') {
-          chatStore.addAssistantMessage('抱歉，AI服务暂时不可用，请稍后重试。')
+          chatStore.addAssistantMessage(errorMsg)
         }
         activeConversationId = null
       })
